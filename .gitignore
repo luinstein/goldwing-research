@@ -1,0 +1,30 @@
+# Build artifacts
+*.class
+*.exe
+*.dll
+*.o
+*.a
+*.pyc
+__pycache__/
+
+# Data files (too large for repo)
+*.csv
+*.json
+*.log
+
+# OS files
+Thumbs.db
+.DS_Store
+
+# Editor files
+*.swp
+*.swo
+*~
+.vscode/
+.idea/
+
+# Temporary files
+*.tmp
+*.bak
+_temp/
+_restore_tmp/

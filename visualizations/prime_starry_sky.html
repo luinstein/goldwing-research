@@ -1,0 +1,1254 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>素数星空 · Prime Starfield</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&family=Inter:wght@300;400;500&family=Noto+Serif+SC:wght@300;400;500;600&display=swap');
+  
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  
+  html, body {
+    background: #05070d;
+    color: #e8edf5;
+    font-family: 'Noto Serif SC', 'Cormorant Garamond', Georgia, serif;
+    overflow-x: hidden;
+    scroll-behavior: smooth;
+  }
+  
+  /* 背景星空层 */
+  .bg-stars {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    z-index: 0;
+    pointer-events: none;
+  }
+  
+  /* 导航 */
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    padding: 24px 48px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    backdrop-filter: blur(20px);
+    background: rgba(5, 7, 13, 0.4);
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+  }
+  
+  nav .logo {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 22px;
+    font-weight: 500;
+    letter-spacing: 2px;
+    color: #c8d4e8;
+  }
+  
+  nav .logo span {
+    color: #6eb5ff;
+    font-style: italic;
+  }
+  
+  nav .links {
+    display: flex;
+    gap: 36px;
+  }
+  
+  nav .links a {
+    color: #8b99b0;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 400;
+    letter-spacing: 1px;
+    transition: color 0.3s;
+    font-family: 'Inter', sans-serif;
+  }
+  
+  nav .links a:hover {
+    color: #c8d4e8;
+  }
+  
+  /* 主内容 */
+  main {
+    position: relative;
+    z-index: 1;
+  }
+  
+  /* Hero 区域 */
+  .hero {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 0 20px;
+    position: relative;
+  }
+  
+  .hero h1 {
+    font-family: 'Cormorant Garamond', 'Noto Serif SC', serif;
+    font-size: clamp(48px, 8vw, 96px);
+    font-weight: 300;
+    letter-spacing: 8px;
+    margin-bottom: 24px;
+    background: linear-gradient(135deg, #ffffff 0%, #6eb5ff 40%, #a78bfa 70%, #ffffff 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: shimmer 6s ease-in-out infinite;
+    background-size: 200% 200%;
+  }
+  
+  @keyframes shimmer {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+  }
+  
+  .hero .subtitle {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(18px, 2.5vw, 28px);
+    font-weight: 300;
+    font-style: italic;
+    color: #7a8ba6;
+    letter-spacing: 4px;
+    margin-bottom: 60px;
+  }
+  
+  .hero .subtitle .cn {
+    font-family: 'Noto Serif SC', serif;
+    font-style: normal;
+    color: #98a8c0;
+  }
+  
+  .hero .scroll-hint {
+    position: absolute;
+    bottom: 48px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: #5a6a82;
+    font-size: 12px;
+    letter-spacing: 3px;
+    animation: float 3s ease-in-out infinite;
+    font-family: 'Inter', sans-serif;
+  }
+  
+  @keyframes float {
+    0%, 100% { transform: translateX(-50%) translateY(0); opacity: 0.5; }
+    50% { transform: translateX(-50%) translateY(10px); opacity: 1; }
+  }
+  
+  /* Section 通用 */
+  section {
+    min-height: 100vh;
+    padding: 120px 48px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    position: relative;
+  }
+  
+  .section-label {
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: #6eb5ff;
+    margin-bottom: 16px;
+    font-weight: 500;
+  }
+  
+  .section-title {
+    font-family: 'Cormorant Garamond', 'Noto Serif SC', serif;
+    font-size: clamp(32px, 5vw, 56px);
+    font-weight: 400;
+    color: #dce4f0;
+    margin-bottom: 16px;
+    letter-spacing: 2px;
+  }
+  
+  .section-desc {
+    font-size: 17px;
+    line-height: 1.9;
+    color: #8b99b0;
+    max-width: 640px;
+    margin-bottom: 48px;
+    font-weight: 300;
+  }
+  
+  /* 可视化容器 */
+  .viz-container {
+    position: relative;
+    width: 100%;
+    max-width: 900px;
+    margin: 0 auto;
+    aspect-ratio: 1;
+    border-radius: 12px;
+    overflow: hidden;
+    background: radial-gradient(ellipse at center, rgba(20, 30, 50, 0.6) 0%, rgba(5, 7, 13, 0.8) 70%);
+    border: 1px solid rgba(110, 181, 255, 0.1);
+    box-shadow: 
+      0 0 60px rgba(110, 181, 255, 0.05),
+      inset 0 0 60px rgba(0, 0, 0, 0.5);
+  }
+  
+  .viz-container canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+  
+  .viz-info {
+    position: absolute;
+    bottom: 20px;
+    left: 24px;
+    right: 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    pointer-events: none;
+  }
+  
+  .viz-info .count {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 42px;
+    font-weight: 300;
+    color: #6eb5ff;
+    line-height: 1;
+  }
+  
+  .viz-info .count small {
+    font-size: 14px;
+    color: #5a6a82;
+    font-family: 'Inter', sans-serif;
+    letter-spacing: 1px;
+    display: block;
+    margin-bottom: 4px;
+  }
+  
+  .viz-info .hint {
+    font-size: 12px;
+    color: #5a6a82;
+    letter-spacing: 1px;
+    text-align: right;
+    font-family: 'Inter', sans-serif;
+    opacity: 0.7;
+  }
+  
+  /* 控制按钮 */
+  .controls {
+    display: flex;
+    gap: 12px;
+    margin-top: 24px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  
+  .control-btn {
+    padding: 10px 24px;
+    border: 1px solid rgba(110, 181, 255, 0.2);
+    background: rgba(110, 181, 255, 0.05);
+    color: #98a8c0;
+    border-radius: 100px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-family: 'Inter', sans-serif;
+    letter-spacing: 1px;
+  }
+  
+  .control-btn:hover {
+    background: rgba(110, 181, 255, 0.1);
+    border-color: rgba(110, 181, 255, 0.4);
+    color: #c8d4e8;
+  }
+  
+  .control-btn.active {
+    background: rgba(110, 181, 255, 0.15);
+    border-color: #6eb5ff;
+    color: #6eb5ff;
+  }
+  
+  /* 哥德巴赫彗星专用 */
+  .comet-section .viz-container {
+    aspect-ratio: 16 / 9;
+    max-width: 1000px;
+  }
+  
+  /* 引语区 */
+  .quote-section {
+    text-align: center;
+    padding: 160px 48px;
+  }
+  
+  .quote-section blockquote {
+    font-family: 'Cormorant Garamond', 'Noto Serif SC', serif;
+    font-size: clamp(24px, 3.5vw, 38px);
+    font-weight: 300;
+    font-style: italic;
+    color: #b8c4d8;
+    max-width: 800px;
+    margin: 0 auto 24px;
+    line-height: 1.6;
+  }
+  
+  .quote-section cite {
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    color: #5a6a82;
+    letter-spacing: 2px;
+    font-style: normal;
+  }
+  
+  /* 页脚 */
+  footer {
+    padding: 60px 48px;
+    text-align: center;
+    border-top: 1px solid rgba(255,255,255,0.04);
+    color: #4a5a72;
+    font-size: 13px;
+    letter-spacing: 1px;
+    font-family: 'Inter', sans-serif;
+  }
+  
+  footer .goldwing {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 18px;
+    color: #6eb5ff;
+    letter-spacing: 3px;
+    margin-bottom: 8px;
+  }
+  
+  /* 响应式 */
+  @media (max-width: 768px) {
+    nav { padding: 16px 20px; }
+    nav .links { gap: 16px; }
+    nav .links a { font-size: 12px; }
+    section { padding: 80px 20px; }
+    .hero h1 { letter-spacing: 4px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- 背景星空 -->
+<canvas class="bg-stars" id="bgStars"></canvas>
+
+<!-- 导航 -->
+<nav>
+  <div class="logo">Prime <span>Starry</span> Sky</div>
+  <div class="links">
+    <a href="#spiral">螺旋</a>
+    <a href="#comet">彗星</a>
+    <a href="#starfield">星野</a>
+  </div>
+</nav>
+
+<main>
+  <!-- Hero -->
+  <section class="hero">
+    <h1>素数星空</h1>
+    <div class="subtitle">
+      The Music of Primes <span class="cn">· 数论之美</span>
+    </div>
+    <div class="scroll-hint">SCROLL TO EXPLORE ↓</div>
+  </section>
+  
+  <!-- 乌拉姆螺旋 -->
+  <section id="spiral">
+    <div class="section-label">01 · Ulam Spiral</div>
+    <h2 class="section-title">乌拉姆螺旋星系</h2>
+    <p class="section-desc">
+      1963年，乌拉姆在一场无聊的学术会议上随手涂鸦，把正整数按螺旋排列、圈出素数，
+      意外发现了令人震惊的图案——素数并非随机散布，它们倾向于落在某些对角线上。
+      半个世纪后的今天，我们用更高的分辨率重新凝视这片素数星云。
+    </p>
+    
+    <div class="viz-container">
+      <canvas id="spiralCanvas"></canvas>
+      <div class="viz-info">
+        <div class="count">
+          <small>素数数量</small>
+          <span id="spiralCount">0</span>
+        </div>
+        <div class="hint">拖动旋转 · 滚轮缩放 · 悬停查看</div>
+      </div>
+    </div>
+    
+    <div class="controls">
+      <button class="control-btn active" onclick="setSpiralMode('classic')">经典螺旋</button>
+      <button class="control-btn" onclick="setSpiralMode('polar')">极坐标映射</button>
+      <button class="control-btn" onclick="setSpiralMode('density')">密度热图</button>
+    </div>
+  </section>
+  
+  <!-- 哥德巴赫彗星 -->
+  <section id="comet" class="comet-section">
+    <div class="section-label">02 · Goldbach Comet</div>
+    <h2 class="section-title">哥德巴赫彗星</h2>
+    <p class="section-desc">
+      每一个偶数都可以写成两个素数之和吗？这就是哥德巴赫猜想。
+      把每个偶数 N 对应的素数对个数 g(N) 画在图上，
+      你会看到一条像彗星一样向上延伸的光带——这就是"哥德巴赫彗星"。
+      它的尾端永远不会触及横轴，因为每一颗星星都有它的伴侣。
+    </p>
+    
+    <div class="viz-container">
+      <canvas id="cometCanvas"></canvas>
+      <div class="viz-info">
+        <div class="count">
+          <small>已绘制偶数</small>
+          <span id="cometCount">0</span>
+        </div>
+        <div class="hint">从 N=4 开始 · 实时生成</div>
+      </div>
+    </div>
+    
+    <div class="controls">
+      <button class="control-btn active" onclick="setCometMode('nebula')">星云模式</button>
+      <button class="control-btn" onclick="setCometMode('scatter')">散射模式</button>
+      <button class="control-btn" onclick="setCometMode('envelope')">包络线</button>
+    </div>
+  </section>
+  
+  <!-- 素数星野 -->
+  <section id="starfield">
+    <div class="section-label">03 · Prime Starfield</div>
+    <h2 class="section-title">素数星野</h2>
+    <p class="section-desc">
+      素数散布在自然数的夜空中，像星星一样遥远而安静。
+      有些素数紧紧相邻（孪生素数），有些则孤身一人。
+      但当你把视线放远，会发现它们的分布有着惊人的规律性——
+      这是宇宙最深的秘密之一。
+    </p>
+    
+    <div class="viz-container">
+      <canvas id="starfieldCanvas"></canvas>
+      <div class="viz-info">
+        <div class="count">
+          <small>闪烁星数</small>
+          <span id="starfieldCount">0</span>
+        </div>
+        <div class="hint">移动鼠标探索 · 点击放大</div>
+      </div>
+    </div>
+    
+    <div class="controls">
+      <button class="control-btn active" onclick="setStarMode('twinkle')">静谧星野</button>
+      <button class="control-btn" onclick="setStarMode('twin')">孪生素数高亮</button>
+      <button class="control-btn" onclick="setStarMode('ripple')">涟漪模式</button>
+    </div>
+  </section>
+  
+  <!-- 引语 -->
+  <section class="quote-section">
+    <blockquote>
+      "素数是数学中最基本、最神秘的对象之一。<br>
+      它们简单得连小学生都能理解，<br>
+      却深邃得让最伟大的数学家穷尽一生也无法参透。"
+    </blockquote>
+    <cite>— 金翼计划 · 耦合刚性研究</cite>
+  </section>
+</main>
+
+<footer>
+  <div class="goldwing">GOLDWING</div>
+  <div>Prime Starfield · 素数星空可视化 · 2026</div>
+</footer>
+
+<script>
+// ============================================================
+// 背景星空
+// ============================================================
+(function() {
+  const canvas = document.getElementById('bgStars');
+  const ctx = canvas.getContext('2d');
+  let stars = [];
+  
+  function resize() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    initStars();
+  }
+  
+  function initStars() {
+    stars = [];
+    const count = Math.floor(canvas.width * canvas.height / 6000);
+    for (let i = 0; i < count; i++) {
+      stars.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        r: Math.random() * 1.2 + 0.2,
+        a: Math.random() * 0.6 + 0.1,
+        s: Math.random() * 0.02 + 0.005,
+        phase: Math.random() * Math.PI * 2
+      });
+    }
+  }
+  
+  function draw(t) {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    // 深空渐变
+    const grad = ctx.createRadialGradient(
+      canvas.width * 0.5, canvas.height * 0.3, 0,
+      canvas.width * 0.5, canvas.height * 0.3, canvas.height * 0.8
+    );
+    grad.addColorStop(0, 'rgba(20, 30, 60, 0.3)');
+    grad.addColorStop(1, 'rgba(5, 7, 13, 0)');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    for (const s of stars) {
+      const twinkle = 0.5 + 0.5 * Math.sin(t * s.s + s.phase);
+      ctx.beginPath();
+      ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(200, 220, 255, ${s.a * twinkle})`;
+      ctx.fill();
+    }
+    
+    requestAnimationFrame(draw);
+  }
+  
+  window.addEventListener('resize', resize);
+  resize();
+  requestAnimationFrame(draw);
+})();
+
+// ============================================================
+// 工具：埃氏筛
+// ============================================================
+function sieve(n) {
+  const s = new Uint8Array(n + 1);
+  s[0] = s[1] = 0;
+  for (let i = 2; i <= n; i++) s[i] = 1;
+  for (let i = 2; i * i <= n; i++) {
+    if (s[i]) {
+      for (let j = i * i; j <= n; j += i) s[j] = 0;
+    }
+  }
+  return s;
+}
+
+// ============================================================
+// 乌拉姆螺旋
+// ============================================================
+(function() {
+  const canvas = document.getElementById('spiralCanvas');
+  const ctx = canvas.getContext('2d');
+  const countEl = document.getElementById('spiralCount');
+  
+  let size = 400;
+  let mode = 'classic';
+  let primes = null;
+  let primeCount = 0;
+  let animProgress = 0;
+  let zoom = 1;
+  let offsetX = 0, offsetY = 0;
+  let isDragging = false;
+  let lastX, lastY;
+  
+  function resize() {
+    const rect = canvas.getBoundingClientRect();
+    canvas.width = rect.width * window.devicePixelRatio;
+    canvas.height = rect.height * window.devicePixelRatio;
+    ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+    size = Math.min(rect.width, rect.height);
+  }
+  
+  function setMode(m) {
+    mode = m;
+    animProgress = 0;
+    animate();
+  }
+  window.setSpiralMode = setMode;
+  
+  function initPrimes(n) {
+    const s = sieve(n);
+    primes = [];
+    for (let i = 2; i <= n; i++) {
+      if (s[i]) primes.push(i);
+    }
+    primeCount = primes.length;
+    countEl.textContent = primeCount.toLocaleString();
+  }
+  
+  // 经典乌拉姆螺旋坐标
+  function spiralCoord(n, cx, cy, step) {
+    if (n === 1) return [cx, cy];
+    let k = Math.ceil((Math.sqrt(n) - 1) / 2);
+    let t = 2 * k + 1;
+    let m = t * t;
+    t--;
+    if (n > m - t) return [cx + k - (m - n), cy - k];
+    m -= t;
+    if (n > m - t) return [cx - k, cy - k + (m - n)];
+    m -= t;
+    if (n > m - t) return [cx - k + (m - n), cy + k];
+    return [cx + k, cy + k - (m - n - t)];
+  }
+  
+  function drawClassic(progress) {
+    const rect = canvas.getBoundingClientRect();
+    const w = rect.width, h = rect.height;
+    const cx = w / 2 + offsetX;
+    const cy = h / 2 + offsetY;
+    
+    const maxN = Math.floor(size * size / 4 * zoom);
+    if (!primes || primes[primes.length - 1] < maxN) {
+      initPrimes(Math.min(maxN, 200000));
+    }
+    
+    const step = 2 * zoom;
+    const limit = Math.floor(primes.length * progress);
+    
+    // 发光效果
+    ctx.shadowBlur = 3;
+    ctx.shadowColor = 'rgba(110, 181, 255, 0.8)';
+    
+    for (let i = 0; i < limit; i++) {
+      const p = primes[i];
+      const [x, y] = spiralCoord(p, cx, cy, step);
+      
+      // 距离中心越远颜色越暖
+      const dist = Math.sqrt((x - cx) ** 2 + (y - cy) ** 2);
+      const maxDist = Math.min(w, h) * 0.45;
+      const t = Math.min(dist / maxDist, 1);
+      
+      const r = Math.floor(110 + t * 100);
+      const g = Math.floor(181 - t * 60);
+      const b = Math.floor(255 - t * 100);
+      
+      ctx.fillStyle = `rgba(${r}, ${g}, ${b}, 0.9)`;
+      ctx.beginPath();
+      ctx.arc(x, y, 1, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    
+    ctx.shadowBlur = 0;
+  }
+  
+  function drawPolar(progress) {
+    const rect = canvas.getBoundingClientRect();
+    const w = rect.width, h = rect.height;
+    const cx = w / 2 + offsetX;
+    const cy = h / 2 + offsetY;
+    
+    const maxN = Math.floor(50000 * zoom);
+    if (!primes || primes[primes.length - 1] < maxN) {
+      initPrimes(maxN);
+    }
+    
+    const limit = Math.floor(primes.length * progress);
+    const scale = Math.min(w, h) * 0.45 / maxN * zoom;
+    
+    ctx.shadowBlur = 2;
+    ctx.shadowColor = 'rgba(167, 139, 250, 0.6)';
+    
+    for (let i = 0; i < limit; i++) {
+      const p = primes[i];
+      // 极坐标：角度 = p（素数本身作为角度），半径 = ln(p)
+      const angle = p * 0.1;
+      const radius = Math.log(p) * 30 * zoom;
+      const x = cx + Math.cos(angle) * radius;
+      const y = cy + Math.sin(angle) * radius;
+      
+      const t = Math.min(radius / (Math.min(w, h) * 0.4), 1);
+      const r = Math.floor(167 + t * 60);
+      const g = Math.floor(139 - t * 40);
+      const b = Math.floor(250 - t * 100);
+      
+      ctx.fillStyle = `rgba(${r}, ${g}, ${b}, 0.85)`;
+      ctx.beginPath();
+      ctx.arc(x, y, 1.2, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    
+    ctx.shadowBlur = 0;
+  }
+  
+  function drawDensity(progress) {
+    const rect = canvas.getBoundingClientRect();
+    const w = rect.width, h = rect.height;
+    
+    const maxN = Math.floor(100000 * zoom);
+    if (!primes || primes[primes.length - 1] < maxN) {
+      initPrimes(maxN);
+    }
+    
+    // 按区间计算密度，用热图颜色表示
+    const bins = 100;
+    const binSize = Math.ceil(maxN / bins);
+    const densities = [];
+    let pi = 0;
+    
+    for (let b = 0; b < bins; b++) {
+      const start = b * binSize;
+      const end = start + binSize;
+      let count = 0;
+      while (pi < primes.length && primes[pi] < end) {
+        if (primes[pi] >= start) count++;
+        pi++;
+      }
+      densities.push(count / binSize / (1 / Math.log(end || 1)));
+    }
+    
+    const barWidth = w / bins;
+    const limit = Math.floor(bins * progress);
+    
+    for (let i = 0; i < limit; i++) {
+      const d = densities[i];
+      const barHeight = d * h * 0.4;
+      const x = i * barWidth;
+      const y = h - barHeight - 40;
+      
+      // 颜色：偏离 1 越多越红
+      const deviation = Math.abs(d - 1);
+      const hue = Math.max(0, 200 - deviation * 200);
+      const grad = ctx.createLinearGradient(x, y, x, h - 40);
+      grad.addColorStop(0, `hsla(${hue}, 80%, 65%, 0.9)`);
+      grad.addColorStop(1, `hsla(${hue}, 80%, 40%, 0.2)`);
+      
+      ctx.fillStyle = grad;
+      ctx.fillRect(x + 1, y, barWidth - 2, h - 40 - y);
+    }
+    
+    // y=1 参考线
+    ctx.strokeStyle = 'rgba(110, 181, 255, 0.5)';
+    ctx.setLineDash([4, 4]);
+    ctx.beginPath();
+    ctx.moveTo(0, h - 40 - h * 0.4);
+    ctx.lineTo(w, h - 40 - h * 0.4);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    
+    ctx.fillStyle = 'rgba(110, 181, 255, 0.7)';
+    ctx.font = '12px Inter, sans-serif';
+    ctx.fillText('素数定理预测密度 = 1', 10, h - 40 - h * 0.4 - 5);
+  }
+  
+  function animate() {
+    const rect = canvas.getBoundingClientRect();
+    const w = rect.width, h = rect.height;
+    
+    ctx.clearRect(0, 0, w, h);
+    
+    // 背景晕光
+    const grad = ctx.createRadialGradient(w/2, h/2, 0, w/2, h/2, w*0.5);
+    grad.addColorStop(0, 'rgba(30, 50, 90, 0.15)');
+    grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, w, h);
+    
+    if (mode === 'classic') {
+      drawClassic(animProgress);
+    } else if (mode === 'polar') {
+      drawPolar(animProgress);
+    } else if (mode === 'density') {
+      drawDensity(animProgress);
+    }
+    
+    if (animProgress < 1) {
+      animProgress += 0.015;
+      if (animProgress > 1) animProgress = 1;
+      requestAnimationFrame(animate);
+    }
+  }
+  
+  // 交互
+  canvas.addEventListener('mousedown', (e) => {
+    isDragging = true;
+    lastX = e.clientX;
+    lastY = e.clientY;
+  });
+  
+  window.addEventListener('mousemove', (e) => {
+    if (!isDragging) return;
+    offsetX += e.clientX - lastX;
+    offsetY += e.clientY - lastY;
+    lastX = e.clientX;
+    lastY = e.clientY;
+    animProgress = 1;
+    animate();
+  });
+  
+  window.addEventListener('mouseup', () => { isDragging = false; });
+  
+  canvas.addEventListener('wheel', (e) => {
+    e.preventDefault();
+    const factor = e.deltaY > 0 ? 0.85 : 1.18;
+    zoom = Math.max(0.3, Math.min(5, zoom * factor));
+    animProgress = 1;
+    animate();
+  }, { passive: false });
+  
+  // 初始化
+  window.addEventListener('resize', () => { resize(); animate(); });
+  resize();
+  initPrimes(50000);
+  animate();
+})();
+
+// ============================================================
+// 哥德巴赫彗星
+// ============================================================
+(function() {
+  const canvas = document.getElementById('cometCanvas');
+  const ctx = canvas.getContext('2d');
+  const countEl = document.getElementById('cometCount');
+  
+  let mode = 'nebula';
+  let animProgress = 0;
+  let maxN = 2000;
+  
+  function resize() {
+    const rect = canvas.getBoundingClientRect();
+    canvas.width = rect.width * window.devicePixelRatio;
+    canvas.height = rect.height * window.devicePixelRatio;
+    ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+  }
+  
+  function setMode(m) {
+    mode = m;
+    animProgress = 0;
+    animate();
+  }
+  window.setCometMode = setMode;
+  
+  // 计算 g(N) - 哥德巴赫分拆数
+  function computeGoldbach(nMax) {
+    const isPrime = sieve(nMax);
+    const primes = [];
+    for (let i = 2; i <= nMax; i++) {
+      if (isPrime[i]) primes.push(i);
+    }
+    
+    const g = new Uint16Array(nMax + 1); // g[N] = count of Goldbach partitions
+    
+    for (let i = 0; i < primes.length; i++) {
+      const p = primes[i];
+      for (let j = i; j < primes.length; j++) {
+        const q = primes[j];
+        const sum = p + q;
+        if (sum > nMax) break;
+        if (sum % 2 === 0) {
+          g[sum]++;
+        }
+      }
+    }
+    
+    return { g, primes };
+  }
+  
+  function drawNebula(progress) {
+    const rect = canvas.getBoundingClientRect();
+    const w = rect.width, h = rect.height;
+    
+    const nLimit = Math.floor(maxN * progress);
+    const { g } = computeGoldbach(maxN);
+    
+    // 找最大 g 值用于缩放
+    let maxG = 0;
+    for (let n = 4; n <= maxN; n += 2) {
+      if (g[n] > maxG) maxG = g[n];
+    }
+    
+    const padX = 60, padY = 40;
+    const plotW = w - padX * 2;
+    const plotH = h - padY * 2;
+    
+    // 画点
+    ctx.shadowBlur = 4;
+    ctx.shadowColor = 'rgba(110, 181, 255, 0.5)';
+    
+    for (let n = 4; n <= nLimit; n += 2) {
+      if (g[n] === 0) continue;
+      
+      const x = padX + (n / maxN) * plotW;
+      const y = padY + plotH - (g[n] / maxG) * plotH;
+      
+      // 颜色：g 值越大越亮越暖
+      const t = g[n] / maxG;
+      const r = Math.floor(110 + t * 120);
+      const g_c = Math.floor(181 - t * 40);
+      const b = Math.floor(255 - t * 80);
+      
+      ctx.fillStyle = `rgba(${r}, ${g_c}, ${b}, ${0.6 + t * 0.4})`;
+      ctx.beginPath();
+      ctx.arc(x, y, 1.5, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    
+    ctx.shadowBlur = 0;
+    
+    // 画包络线（基于 S(N) ~ n/lnn * 2C2 * prod）
+    // 简化：上包络 ~ C * n / ln(n)^2
+    ctx.strokeStyle = 'rgba(167, 139, 250, 0.4)';
+    ctx.lineWidth = 1.5;
+    ctx.setLineDash([5, 5]);
+    ctx.beginPath();
+    
+    let first = true;
+    for (let n = 10; n <= nLimit; n += 10) {
+      if (n % 2 !== 0) continue;
+      // 上包络近似
+      const env = 2 * 0.66 * n / (Math.log(n) ** 2) * 1.15;
+      const x = padX + (n / maxN) * plotW;
+      const y = padY + plotH - (env / maxG) * plotH;
+      
+      if (y < padY) continue;
+      if (first) { ctx.moveTo(x, y); first = false; }
+      else ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+    ctx.setLineDash([]);
+    
+    countEl.textContent = Math.floor(nLimit / 2).toLocaleString();
+  }
+  
+  function drawScatter(progress) {
+    const rect = canvas.getBoundingClientRect();
+    const w = rect.width, h = rect.height;
+    
+    const nLimit = Math.floor(maxN * progress);
+    const { g } = computeGoldbach(maxN);
+    
+    let maxG = 0;
+    for (let n = 4; n <= maxN; n += 2) {
+      if (g[n] > maxG) maxG = g[n];
+    }
+    
+    const padX = 60, padY = 40;
+    const plotW = w - padX * 2;
+    const plotH = h - padY * 2;
+    
+    // 画竖线散点
+    for (let n = 4; n <= nLimit; n += 2) {
+      if (g[n] === 0) continue;
+      const x = padX + (n / maxN) * plotW;
+      const y = padY + plotH - (g[n] / maxG) * plotH;
+      
+      const t = g[n] / maxG;
+      ctx.fillStyle = `rgba(110, 181, 255, ${0.4 + t * 0.5})`;
+      ctx.fillRect(x - 0.5, y, 1, h - padY - y);
+    }
+    
+    countEl.textContent = Math.floor(nLimit / 2).toLocaleString();
+  }
+  
+  function drawEnvelope(progress) {
+    const rect = canvas.getBoundingClientRect();
+    const w = rect.width, h = rect.height;
+    
+    const nLimit = Math.floor(maxN * progress);
+    const { g } = computeGoldbach(maxN);
+    
+    // 计算上包络（滚动最大值）
+    let maxG = 0;
+    const envUpper = [];
+    const envLower = [];
+    let rollingMax = 0;
+    let rollingMin = Infinity;
+    const windowSize = 20;
+    
+    for (let n = 4; n <= maxN; n += 2) {
+      if (g[n] > maxG) maxG = g[n];
+    }
+    
+    for (let n = 4; n <= maxN; n += 2) {
+      if (g[n] > rollingMax) rollingMax = g[n];
+      if (n > 100) {
+        // 下界取附近最小值
+        let localMin = Infinity;
+        for (let k = Math.max(4, n - windowSize * 2); k <= n; k += 2) {
+          if (g[k] > 0 && g[k] < localMin) localMin = g[k];
+        }
+        envLower.push([n, localMin]);
+      }
+      envUpper.push([n, rollingMax]);
+    }
+    
+    const padX = 60, padY = 40;
+    const plotW = w - padX * 2;
+    const plotH = h - padY * 2;
+    
+    // 填充包络区域
+    const visibleUpper = envUpper.filter(p => p[0] <= nLimit);
+    const visibleLower = envLower.filter(p => p[0] <= nLimit);
+    
+    if (visibleUpper.length > 1) {
+      ctx.beginPath();
+      for (let i = 0; i < visibleUpper.length; i++) {
+        const [n, val] = visibleUpper[i];
+        const x = padX + (n / maxN) * plotW;
+        const y = padY + plotH - (val / maxG) * plotH;
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      for (let i = visibleLower.length - 1; i >= 0; i--) {
+        const [n, val] = visibleLower[i];
+        const x = padX + (n / maxN) * plotW;
+        const y = padY + plotH - (val / maxG) * plotH;
+        ctx.lineTo(x, y);
+      }
+      ctx.closePath();
+      
+      const grad = ctx.createLinearGradient(0, padY, 0, h - padY);
+      grad.addColorStop(0, 'rgba(167, 139, 250, 0.3)');
+      grad.addColorStop(1, 'rgba(110, 181, 255, 0.1)');
+      ctx.fillStyle = grad;
+      ctx.fill();
+    }
+    
+    // 上包络线
+    if (visibleUpper.length > 1) {
+      ctx.strokeStyle = 'rgba(167, 139, 250, 0.9)';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      for (let i = 0; i < visibleUpper.length; i++) {
+        const [n, val] = visibleUpper[i];
+        const x = padX + (n / maxN) * plotW;
+        const y = padY + plotH - (val / maxG) * plotH;
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+    }
+    
+    countEl.textContent = Math.floor(nLimit / 2).toLocaleString();
+  }
+  
+  function animate() {
+    const rect = canvas.getBoundingClientRect();
+    const w = rect.width, h = rect.height;
+    
+    ctx.clearRect(0, 0, w, h);
+    
+    // 背景
+    const grad = ctx.createLinearGradient(0, 0, 0, h);
+    grad.addColorStop(0, 'rgba(20, 15, 40, 0.3)');
+    grad.addColorStop(1, 'rgba(5, 7, 13, 0)');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, w, h);
+    
+    if (mode === 'nebula') {
+      drawNebula(animProgress);
+    } else if (mode === 'scatter') {
+      drawScatter(animProgress);
+    } else if (mode === 'envelope') {
+      drawEnvelope(animProgress);
+    }
+    
+    // 坐标轴
+    const padX = 60, padY = 40;
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(padX, padY);
+    ctx.lineTo(padX, h - padY);
+    ctx.lineTo(w - padX, h - padY);
+    ctx.stroke();
+    
+    // 轴标签
+    ctx.fillStyle = 'rgba(138, 153, 176, 0.6)';
+    ctx.font = '11px Inter, sans-serif';
+    ctx.fillText('N', w - padX + 8, h - padY + 4);
+    ctx.save();
+    ctx.translate(padX - 15, padY + 10);
+    ctx.rotate(-Math.PI / 2);
+    ctx.fillText('g(N)', 0, 0);
+    ctx.restore();
+    
+    if (animProgress < 1) {
+      animProgress += 0.012;
+      if (animProgress > 1) animProgress = 1;
+      requestAnimationFrame(animate);
+    }
+  }
+  
+  window.addEventListener('resize', () => { resize(); animProgress = 1; animate(); });
+  resize();
+  animate();
+})();
+
+// ============================================================
+// 素数星野
+// ============================================================
+(function() {
+  const canvas = document.getElementById('starfieldCanvas');
+  const ctx = canvas.getContext('2d');
+  const countEl = document.getElementById('starfieldCount');
+  
+  let mode = 'twinkle';
+  let stars = [];
+  let mouseX = 0, mouseY = 0;
+  let mouseInCanvas = false;
+  
+  function resize() {
+    const rect = canvas.getBoundingClientRect();
+    canvas.width = rect.width * window.devicePixelRatio;
+    canvas.height = rect.height * window.devicePixelRatio;
+    ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+    initStars();
+  }
+  
+  function setMode(m) {
+    mode = m;
+  }
+  window.setStarMode = setMode;
+  
+  function initStars() {
+    const rect = canvas.getBoundingClientRect();
+    const w = rect.width, h = rect.height;
+    
+    // 在画布上散布素数位置的"星星"
+    // 用一个区间内的素数，映射到画布位置
+    const startN = 1000;
+    const endN = 50000;
+    const isPrime = sieve(endN);
+    
+    stars = [];
+    for (let n = startN; n < endN; n++) {
+      if (isPrime[n]) {
+        // 用伪随机但确定的方式分配位置
+        const seed = n * 9301 + 49297;
+        const x = (seed % 233280) / 233280 * w;
+        const y = ((seed * 7) % 233280) / 233280 * h;
+        
+        // 大小：素数越大星越暗越小（越稀有）
+        const size = Math.max(0.5, 2.5 - n / endN * 2);
+        const baseAlpha = 0.3 + 0.5 * (1 - n / endN);
+        
+        // 闪烁相位
+        const phase = Math.random() * Math.PI * 2;
+        const speed = 0.002 + Math.random() * 0.005;
+        
+        stars.push({
+          n, x, y, size, baseAlpha, phase, speed,
+          isTwin: isPrime[n + 2] || isPrime[n - 2]
+        });
+      }
+    }
+    
+    countEl.textContent = stars.length.toLocaleString();
+  }
+  
+  function draw(t) {
+    const rect = canvas.getBoundingClientRect();
+    const w = rect.width, h = rect.height;
+    
+    ctx.clearRect(0, 0, w, h);
+    
+    // 深空渐变
+    const grad = ctx.createRadialGradient(w/2, h/2, 0, w/2, h/2, w*0.6);
+    grad.addColorStop(0, 'rgba(25, 35, 60, 0.2)');
+    grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, w, h);
+    
+    // 计算鼠标距离
+    let mx = mouseX, my = mouseY;
+    
+    for (const s of stars) {
+      let alpha = s.baseAlpha;
+      let size = s.size;
+      let color = '200, 220, 255';
+      
+      if (mode === 'twinkle') {
+        // 自然闪烁
+        const twinkle = 0.6 + 0.4 * Math.sin(t * s.speed + s.phase);
+        alpha *= twinkle;
+      } else if (mode === 'twin') {
+        // 孪生素数高亮
+        if (s.isTwin) {
+          color = '255, 180, 100';
+          size *= 1.8;
+          alpha *= 1.5;
+          const pulse = 0.7 + 0.3 * Math.sin(t * 0.003 + s.phase);
+          alpha *= pulse;
+        } else {
+          alpha *= 0.3;
+        }
+      } else if (mode === 'ripple') {
+        // 涟漪模式：鼠标周围的星变亮
+        if (mouseInCanvas) {
+          const dx = s.x - mx;
+          const dy = s.y - my;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          const maxDist = 150;
+          if (dist < maxDist) {
+            const boost = 1 + (1 - dist / maxDist) * 3;
+            alpha *= boost;
+            size *= (1 + (1 - dist / maxDist) * 1.5);
+            color = '167, 139, 250';
+          }
+        }
+        const twinkle = 0.7 + 0.3 * Math.sin(t * s.speed + s.phase);
+        alpha *= twinkle;
+      }
+      
+      // 发光
+      if (size > 1.5) {
+        ctx.beginPath();
+        ctx.arc(s.x, s.y, size * 3, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(${color}, ${alpha * 0.15})`;
+        ctx.fill();
+      }
+      
+      ctx.beginPath();
+      ctx.arc(s.x, s.y, size, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(${color}, ${alpha})`;
+      ctx.fill();
+    }
+    
+    // 涟漪模式下画波纹
+    if (mode === 'ripple' && mouseInCanvas) {
+      const rippleR = (t * 0.1) % 200;
+      ctx.beginPath();
+      ctx.arc(mx, my, rippleR, 0, Math.PI * 2);
+      ctx.strokeStyle = `rgba(167, 139, 250, ${0.5 * (1 - rippleR / 200)})`;
+      ctx.lineWidth = 1;
+      ctx.stroke();
+    }
+    
+    requestAnimationFrame(draw);
+  }
+  
+  canvas.addEventListener('mousemove', (e) => {
+    const rect = canvas.getBoundingClientRect();
+    mouseX = e.clientX - rect.left;
+    mouseY = e.clientY - rect.top;
+    mouseInCanvas = true;
+  });
+  
+  canvas.addEventListener('mouseleave', () => { mouseInCanvas = false; });
+  
+  canvas.addEventListener('click', (e) => {
+    // 点击放大效果（简单的视觉反馈）
+    const rect = canvas.getBoundingClientRect();
+    mouseX = e.clientX - rect.left;
+    mouseY = e.clientY - rect.top;
+  });
+  
+  window.addEventListener('resize', resize);
+  resize();
+  requestAnimationFrame(draw);
+})();
+
+// 导航按钮激活状态
+document.querySelectorAll('.controls').forEach(group => {
+  group.addEventListener('click', (e) => {
+    if (e.target.classList.contains('control-btn')) {
+      group.querySelectorAll('.control-btn').forEach(b => b.classList.remove('active'));
+      e.target.classList.add('active');
+    }
+  });
+});
+</script>
+
+</body>
+</html>
