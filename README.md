@@ -1,4 +1,4 @@
-# 金翼计划 · Goldwing Research
+﻿# 金翼计划 · Goldwing Research
 
 > 十亿偶数里，素数对的涨落比泊松还安静。
 
@@ -10,11 +10,13 @@
 
 ### 1. 零参数漂移律 ✅
 
-哥德巴赫归一化计数 \( K(N) = g(N) \cdot \ln^2 N / (N \cdot S(N)) \) 的均值可以从 Hardy–Littlewood 奇异级数**精确导出**，零拟合参数：
+哥德巴赫归一化计数 \( K(N) = g(N) \cdot \ln^2 N / (S(N) \cdot N) \) 的均值可以从 Hardy–Littlewood 奇异级数**精确导出**，零拟合参数。其中 \( S(N) = C_2 \cdot \prod_{p|N, p>2} (p-1)/(p-2) \) 为完整奇异级数，\( C_2 \approx 0.66016 \) 是孪生素数常数。
 
 \[
-\langle K(N) \rangle \approx 2C_2 \cdot \Phi\!\left(\frac{1}{\ln N}\right)
+\langle K(N) \rangle \approx 2 \cdot \Phi\!\left(\frac{1}{\ln N}\right)
 \]
+
+若 Hardy–Littlewood 猜想成立，则 \( K(N) \to 1 \)。
 
 在 \( N = 10^9 \) 处，理论预测与实测偏差仅 **0.008%**，且随尺度增大单调收窄。
 
@@ -46,7 +48,7 @@ goldwing-research/
 ├── README.md                    # 本文件
 ├── index.html                   # GitHub Pages 入口（重定向到报告）
 ├── paper/
-│   └── goldwing_v1.6_subpoisson.html   # 研究报告（完整版）
+│   └── goldwing_v1.7_subpoisson.html   # 研究报告（完整版）
 ├── visualizations/
 │   ├── prime_starry_sky.html    # 素数星空（交互式可视化）
 │   └── goldwing_constellation.html # 金翼星座（成果星空化）
@@ -62,7 +64,7 @@ goldwing-research/
 
 ### 阅读报告
 
-直接打开 `paper/goldwing_v1.6_subpoisson.html`，或访问：
+直接打开 `paper/goldwing_v1.7_subpoisson.html`，或访问：
 **[GitHub Pages](https://luinstein.github.io/goldwing-research/)**
 
 ### 浏览可视化
@@ -83,17 +85,17 @@ goldwing-research/
 
 | N | ⟨K⟩ | κ_naive | κ_noise | 漂移占比 |
 |---|-----|---------|---------|----------|
-| 5×10⁵ | 0.72816 | 1.153 | 0.535 | 78.4% |
-| 10⁶ | 0.72901 | 1.260 | 0.541 | 81.5% |
-| 2×10⁶ | 0.72971 | 1.389 | 0.536 | 85.1% |
-| 5×10⁶ | 0.73037 | 1.596 | 0.530 | 89.0% |
-| 10⁷ | 0.73077 | 1.776 | 0.545 | 90.6% |
-| 2×10⁷ | 0.73111 | 1.990 | 0.542 | 92.6% |
-| 5×10⁷ | 0.73147 | 2.296 | 0.544 | 94.4% |
-| 10⁸ | 0.73169 | 2.566 | 0.538 | 95.6% |
-| 2×10⁸ | 0.73185 | 2.902 | 0.539 | 96.5% |
-| 5×10⁸ | 0.73200 | 3.368 | 0.529 | 97.5% |
-| **10⁹** | **0.73212** | **3.807** | **0.542** | **98.0%** |
+| 5×10⁵ | 1.10300 | 1.153 | 0.535 | 78.4% |
+| 10⁶ | 1.10429 | 1.260 | 0.541 | 81.5% |
+| 2×10⁶ | 1.10535 | 1.389 | 0.536 | 85.1% |
+| 5×10⁶ | 1.10635 | 1.596 | 0.530 | 89.0% |
+| 10⁷ | 1.10696 | 1.776 | 0.545 | 90.6% |
+| 2×10⁷ | 1.10747 | 1.990 | 0.542 | 92.6% |
+| 5×10⁷ | 1.10802 | 2.296 | 0.544 | 94.4% |
+| 10⁸ | 1.10835 | 2.566 | 0.538 | 95.6% |
+| 2×10⁸ | 1.10859 | 2.902 | 0.539 | 96.5% |
+| 5×10⁸ | 1.10882 | 3.368 | 0.529 | 97.5% |
+| **10⁹** | **1.10900** | **3.807** | **0.542** | **98.0%** |
 
 完整数据表见报告附录。
 
@@ -162,7 +164,7 @@ goldwing-research/
 
 ## 🔗 相关资源
 
-- [研究报告 v1.6](https://luinstein.github.io/goldwing-research/paper/goldwing_v1.6_subpoisson.html)
+- [研究报告 v1.7](https://luinstein.github.io/goldwing-research/paper/goldwing_v1.7_subpoisson.html)
 - [发布方案](docs/publication_plan_v1.html)
 - [素数星空可视化](visualizations/prime_starry_sky.html)
 - [金翼星座](visualizations/goldwing_constellation.html)

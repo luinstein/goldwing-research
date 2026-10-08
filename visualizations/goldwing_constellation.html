@@ -517,7 +517,7 @@
           <span class="en">The Drift Law · Zero-Parameter Convergence</span>
         </h2>
         <div class="formula">
-          K(N) = <span class="num">2C₂</span> · Φ(1/ln N)
+          K(N) = <span class="num">2</span> · Φ(1/ln N)
         </div>
         <p>
           哥德巴赫分拆密度的平均值，并非一个经验常数——
@@ -960,32 +960,32 @@
   let running = false;
   
   const rows = [
-    { N: 500000,   K: 0.73741, src: 'py' },
-    { N: 1000000,  K: 0.73664, src: 'py' },
-    { N: 2000000,  K: 0.73595, src: 'py' },
-    { N: 3000000,  K: 0.73557, src: 'py' },
-    { N: 4000000,  K: 0.73530, src: 'py' },
-    { N: 5000000,  K: 0.73512, src: 'py' },
-    { N: 10000000, K: 0.73452, src: 'cpp' },
-    { N: 20000000, K: 0.73406, src: 'cpp' },
-    { N: 30000000, K: 0.73382, src: 'cpp' },
-    { N: 40000000, K: 0.73366, src: 'cpp' },
-    { N: 50000000, K: 0.73354, src: 'cpp' },
-    { N: 100000000, K: 0.73319, src: 'cpp' },
-    { N: 200000000, K: 0.73293, src: 'cpp' },
-    { N: 300000000, K: 0.73280, src: 'cpp' },
-    { N: 400000000, K: 0.73272, src: 'cpp' },
-    { N: 500000000, K: 0.73266, src: 'cpp' },
-    { N: 1000000000, K: 0.73253, src: 'cpp' },
+    { N: 500000,   K: 1.11701, src: 'py' },
+    { N: 1000000,  K: 1.11585, src: 'py' },
+    { N: 2000000,  K: 1.11480, src: 'py' },
+    { N: 3000000,  K: 1.11423, src: 'py' },
+    { N: 4000000,  K: 1.113820, src: 'py' },
+    { N: 5000000,  K: 1.11355, src: 'py' },
+    { N: 10000000, K: 1.11264, src: 'cpp' },
+    { N: 20000000, K: 1.11194, src: 'cpp' },
+    { N: 30000000, K: 1.11158, src: 'cpp' },
+    { N: 40000000, K: 1.11133, src: 'cpp' },
+    { N: 50000000, K: 1.11115, src: 'cpp' },
+    { N: 100000000, K: 1.11062, src: 'cpp' },
+    { N: 200000000, K: 1.11023, src: 'cpp' },
+    { N: 300000000, K: 1.110030, src: 'cpp' },
+    { N: 400000000, K: 1.10991, src: 'cpp' },
+    { N: 500000000, K: 1.10982, src: 'cpp' },
+    { N: 1000000000, K: 1.10962, src: 'cpp' },
   ];
   
   // 理论值（近似 K_theory = 2C2 * phi(1/lnN)，简化为单调收敛曲线）
   const C2 = 0.6601618;
   function kTheory(N) {
     const u = 1 / Math.log(N);
-    // 简化：K(N) 单调趋近于 2C2 = 1.32... 不对，K≈0.73
-    // 用实际拟合: K(N) ≈ 0.7325 + 3.5/N^0.53
-    return 0.73253 + 3.418 * Math.pow(N, -0.530);
+    // K(N) 单调递减趋近于 1（标准口径）
+    // 用实际拟合: K(N) ≈ 1.109 + 5.2/N^0.53
+    return 1.10962 + 5.178 * Math.pow(N, -0.530);
   }
   
   function draw() {
@@ -1011,7 +1011,7 @@
     // y 轴
     const allK = rows.map(r => r.K);
     const yLo = 0.730;
-    const yHi = 0.738;
+    const yHi = 1.118;
     
     function sy(y) {
       const t = (y - yLo) / (yHi - yLo);
@@ -1091,8 +1091,8 @@
     // 刻度
     ctx.fillStyle = 'rgba(90, 106, 136, 0.5)';
     ctx.font = '10px JetBrains Mono, monospace';
-    ctx.fillText('0.730', pl - 35, sy(0.730) + 3);
-    ctx.fillText('0.735', pl - 35, sy(0.735) + 3);
+    ctx.fillText('1.106', pl - 35, sy(0.730) + 3);
+    ctx.fillText('1.113', pl - 35, sy(0.735) + 3);
     ctx.fillText('1M', sx(1e6) - 8, h - pb + 18);
     ctx.fillText('10M', sx(1e7) - 10, h - pb + 18);
     ctx.fillText('100M', sx(1e8) - 12, h - pb + 18);

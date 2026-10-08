@@ -33,7 +33,7 @@
 
 ### 链接
 
-- 完整版报告（HTML，交互式图表）：https://luinstein.github.io/goldwing-research/paper/goldwing_v1.6_subpoisson.html
+- 完整版报告（HTML，交互式图表）：https://luinstein.github.io/goldwing-research/paper/goldwing_v1.7_subpoisson.html
 - 项目主页（有可视化）：https://luinstein.github.io/goldwing-research/
 - GitHub 仓库：https://github.com/luinstein/goldwing-research
 - 素数星空可视化：https://luinstein.github.io/goldwing-research/visualizations/prime_starry_sky.html
