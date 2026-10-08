@@ -1,0 +1,1043 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>金翼计划 · 哥德巴赫分拆数极坐标可视化</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: #0a0a12;
+    color: #e0e0e8;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+  
+  .container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 20px;
+  }
+  
+  header {
+    text-align: center;
+    padding: 30px 0 20px;
+    border-bottom: 1px solid rgba(255,215,0,0.15);
+    margin-bottom: 30px;
+  }
+  
+  h1 {
+    font-size: 28px;
+    font-weight: 300;
+    letter-spacing: 2px;
+    background: linear-gradient(135deg, #ffd700, #ffaa00);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 8px;
+  }
+  
+  .subtitle {
+    color: #888;
+    font-size: 14px;
+    font-weight: 300;
+  }
+  
+  .main-layout {
+    display: grid;
+    grid-template-columns: 280px 1fr 280px;
+    gap: 20px;
+  }
+  
+  @media (max-width: 1200px) {
+    .main-layout {
+      grid-template-columns: 1fr;
+    }
+  }
+  
+  .panel {
+    background: rgba(20, 20, 35, 0.8);
+    border: 1px solid rgba(255,215,0,0.1);
+    border-radius: 12px;
+    padding: 20px;
+  }
+  
+  .panel h3 {
+    font-size: 15px;
+    font-weight: 500;
+    color: #ffd700;
+    margin-bottom: 15px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid rgba(255,215,0,0.1);
+    letter-spacing: 1px;
+  }
+  
+  .control-group {
+    margin-bottom: 18px;
+  }
+  
+  .control-group label {
+    display: block;
+    font-size: 12px;
+    color: #aaa;
+    margin-bottom: 6px;
+  }
+  
+  .control-group .value {
+    float: right;
+    color: #ffd700;
+    font-weight: 500;
+  }
+  
+  select, input[type="range"] {
+    width: 100%;
+    padding: 6px 10px;
+    background: rgba(0,0,0,0.3);
+    border: 1px solid rgba(255,215,0,0.2);
+    border-radius: 6px;
+    color: #e0e0e8;
+    font-size: 13px;
+    outline: none;
+  }
+  
+  select {
+    cursor: pointer;
+  }
+  
+  select:hover {
+    border-color: rgba(255,215,0,0.4);
+  }
+  
+  input[type="range"] {
+    -webkit-appearance: none;
+    height: 4px;
+    padding: 0;
+    background: rgba(255,215,0,0.1);
+    border-radius: 2px;
+  }
+  
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: #ffd700;
+    cursor: pointer;
+    box-shadow: 0 0 10px rgba(255,215,0,0.5);
+  }
+  
+  .btn-group {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  
+  .btn {
+    flex: 1;
+    min-width: 60px;
+    padding: 8px 12px;
+    background: rgba(255,215,0,0.08);
+    border: 1px solid rgba(255,215,0,0.2);
+    border-radius: 6px;
+    color: #ccc;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  
+  .btn:hover {
+    background: rgba(255,215,0,0.15);
+    border-color: rgba(255,215,0,0.4);
+  }
+  
+  .btn.active {
+    background: rgba(255,215,0,0.2);
+    border-color: #ffd700;
+    color: #ffd700;
+  }
+  
+  .canvas-wrap {
+    position: relative;
+    background: rgba(10, 10, 20, 0.9);
+    border: 1px solid rgba(255,215,0,0.1);
+    border-radius: 12px;
+    overflow: hidden;
+    aspect-ratio: 1;
+    max-height: 700px;
+  }
+  
+  canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+    cursor: crosshair;
+  }
+  
+  .tooltip {
+    position: absolute;
+    background: rgba(10, 10, 20, 0.95);
+    border: 1px solid rgba(255,215,0,0.3);
+    border-radius: 8px;
+    padding: 12px 16px;
+    font-size: 13px;
+    pointer-events: none;
+    z-index: 100;
+    display: none;
+    min-width: 180px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+  }
+  
+  .tooltip .t-title {
+    color: #ffd700;
+    font-weight: 500;
+    margin-bottom: 8px;
+    font-size: 14px;
+  }
+  
+  .tooltip .t-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 3px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+  }
+  
+  .tooltip .t-label {
+    color: #888;
+  }
+  
+  .tooltip .t-value {
+    color: #e0e0e8;
+    font-variant-numeric: tabular-nums;
+  }
+  
+  .stat-item {
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+  }
+  
+  .stat-item:last-child {
+    border-bottom: none;
+  }
+  
+  .stat-label {
+    font-size: 12px;
+    color: #888;
+    margin-bottom: 4px;
+  }
+  
+  .stat-value {
+    font-size: 18px;
+    font-weight: 300;
+    color: #ffd700;
+    font-variant-numeric: tabular-nums;
+  }
+  
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 0;
+    font-size: 13px;
+  }
+  
+  .legend-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  
+  .progress-bar {
+    width: 100%;
+    height: 4px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 2px;
+    overflow: hidden;
+    margin-top: 10px;
+    display: none;
+  }
+  
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #ffd700, #ff8800);
+    width: 0%;
+    transition: width 0.1s;
+  }
+  
+  .loading-text {
+    text-align: center;
+    color: #888;
+    font-size: 13px;
+    margin-top: 10px;
+  }
+  
+  .insight-box {
+    background: rgba(255,215,0,0.05);
+    border-left: 3px solid #ffd700;
+    padding: 12px 15px;
+    margin-top: 15px;
+    font-size: 12px;
+    line-height: 1.7;
+    color: #bbb;
+    border-radius: 0 6px 6px 0;
+  }
+  
+  .insight-box strong {
+    color: #ffd700;
+    font-weight: 500;
+  }
+  
+  footer {
+    text-align: center;
+    padding: 30px 0;
+    color: #555;
+    font-size: 12px;
+    margin-top: 30px;
+    border-top: 1px solid rgba(255,215,0,0.05);
+  }
+  
+  footer a {
+    color: #ffd700;
+    text-decoration: none;
+    opacity: 0.6;
+  }
+  
+  footer a:hover {
+    opacity: 1;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>金翼计划 · 哥德巴赫分拆数极坐标</h1>
+    <p class="subtitle">Goldbach Partitions in Polar Coordinates · 探索素数对的螺旋之美</p>
+  </header>
+  
+  <div class="main-layout">
+    <!-- 左侧控制面板 -->
+    <div class="panel">
+      <h3>⚙️ 显示控制</h3>
+      
+      <div class="control-group">
+        <label>数值模式</label>
+        <div class="btn-group">
+          <button class="btn active" data-mode="K" onclick="setMode('K')">K(N)</button>
+          <button class="btn" data-mode="g" onclick="setMode('g')">g(N)</button>
+        </div>
+      </div>
+      
+      <div class="control-group">
+        <label>着色方案</label>
+        <select id="colorScheme" onchange="updateColorScheme()">
+          <option value="mod6">按模 6 剩余类</option>
+          <option value="deviation">按 K(N) 偏差</option>
+          <option value="density">按局部密度</option>
+        </select>
+      </div>
+      
+      <div class="control-group">
+        <label>最大偶数 <span class="value" id="maxNVal">5000</span></label>
+        <input type="range" id="maxN" min="200" max="20000" step="100" value="5000" oninput="updateMaxN(this.value)">
+      </div>
+      
+      <div class="control-group">
+        <label>点大小 <span class="value" id="pointSizeVal">2.0</span></label>
+        <input type="range" id="pointSize" min="0.5" max="6" step="0.5" value="2" oninput="updatePointSize(this.value)">
+      </div>
+      
+      <div class="control-group">
+        <label>显示选项</label>
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+            <input type="checkbox" id="showGrid" checked onchange="toggleGrid()"> 显示参考圆
+          </label>
+          <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+            <input type="checkbox" id="showAxis" checked onchange="toggleAxis()"> 显示坐标轴
+          </label>
+          <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+            <input type="checkbox" id="showSpiral" onchange="toggleSpiral()"> 显示螺旋连线
+          </label>
+        </div>
+      </div>
+      
+      <div class="control-group">
+        <label>动画</label>
+        <div class="btn-group">
+          <button class="btn" onclick="toggleRotation()">▶ 旋转</button>
+          <button class="btn" onclick="resetView()">⟲ 重置</button>
+        </div>
+      </div>
+      
+      <div class="progress-bar" id="progressBar">
+        <div class="progress-fill" id="progressFill"></div>
+      </div>
+      <div class="loading-text" id="loadingText" style="display:none;">正在计算...</div>
+      
+      <div class="insight-box">
+        <strong>💡 金翼视角</strong><br>
+        三条螺旋臂对应偶数模 6 的三个剩余类。N≡0 mod6 的臂靠外，因为奇异级数含因子 3，分拆数约为另外两类的 2 倍。
+      </div>
+    </div>
+    
+    <!-- 中间画布 -->
+    <div class="canvas-wrap">
+      <canvas id="canvas"></canvas>
+      <div class="tooltip" id="tooltip">
+        <div class="t-title" id="tipTitle">N = 0</div>
+        <div class="t-row"><span class="t-label">哥德巴赫分拆数</span><span class="t-value" id="tipG">0</span></div>
+        <div class="t-row"><span class="t-label">K(N)</span><span class="t-value" id="tipK">0</span></div>
+        <div class="t-row"><span class="t-label">模 6</span><span class="t-value" id="tipMod6">0</span></div>
+        <div class="t-row"><span class="t-label">S(N) 奇异级数</span><span class="t-value" id="tipS">0</span></div>
+      </div>
+    </div>
+    
+    <!-- 右侧信息面板 -->
+    <div class="panel">
+      <h3>📊 统计信息</h3>
+      
+      <div class="stat-item">
+        <div class="stat-label">偶数总数</div>
+        <div class="stat-value" id="statCount">0</div>
+      </div>
+      
+      <div class="stat-item">
+        <div class="stat-label">g(N) 范围</div>
+        <div class="stat-value" id="statGRange" style="font-size: 14px;">0 ~ 0</div>
+      </div>
+      
+      <div class="stat-item">
+        <div class="stat-label">K(N) 范围</div>
+        <div class="stat-value" id="statKRange" style="font-size: 14px;">0 ~ 0</div>
+      </div>
+      
+      <div class="stat-item">
+        <div class="stat-label">K(N) 均值</div>
+        <div class="stat-value" id="statKMean" style="font-size: 22px;">0</div>
+      </div>
+      
+      <div class="stat-item">
+        <div class="stat-label">K(N) 标准差</div>
+        <div class="stat-value" id="statKStd" style="font-size: 14px;">0</div>
+      </div>
+      
+      <div class="stat-item">
+        <div class="stat-label">g(0 mod6) / g(2 mod6)</div>
+        <div class="stat-value" id="statRatio" style="font-size: 16px;">0</div>
+      </div>
+      
+      <h3 style="margin-top: 25px;">🎨 图例</h3>
+      <div id="legendMod6">
+        <div class="legend-item">
+          <div class="legend-dot" style="background: #ffd700;"></div>
+          <span>N ≡ 0 (mod 6) — 含因子 3，g(N) 最大</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-dot" style="background: #00d4ff;"></div>
+          <span>N ≡ 2 (mod 6) — 不含因子 3</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-dot" style="background: #ff6b9d;"></div>
+          <span>N ≡ 4 (mod 6) — 不含因子 3</span>
+        </div>
+      </div>
+      <div id="legendDeviation" style="display:none;">
+        <div class="legend-item">
+          <div class="legend-dot" style="background: #ff4444;"></div>
+          <span>K(N) &gt; 1.5σ — 显著偏高</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-dot" style="background: #ffd700;"></div>
+          <span>K(N) 在 ±1.5σ 内</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-dot" style="background: #4488ff;"></div>
+          <span>K(N) &lt; -1.5σ — 显著偏低</span>
+        </div>
+      </div>
+      
+      <h3 style="margin-top: 25px;">📚 相关概念</h3>
+      <div style="font-size: 12px; line-height: 1.8; color: #999;">
+        <p><strong style="color:#ffd700;">奇异级数 S(N)</strong>：Hardy-Littlewood 猜想中的核心量，由 N 的素因子决定，S(N) = C₂·∏<sub>p|N, p&gt;2</sub>(p-1)/(p-2)</p>
+        <p style="margin-top: 8px;"><strong style="color:#ffd700;">K(N)</strong>：归一化分拆数，K(N) = g(N)·ln²N / (S(N)·N)。若 H-L 猜想成立，K(N) → 1。</p>
+        <p style="margin-top: 8px;"><strong style="color:#ffd700;">漂移律</strong>：K(N) 均值 ≈ 2·Φ(1/ln N)，从零参数出发即可精确预测。</p>
+      </div>
+    </div>
+  </div>
+  
+  <footer>
+    金翼计划 Goldwing Project · 耦合刚性研究 · <a href="https://luinstein.github.io/goldwing-research/" target="_blank">查看完整报告</a>
+  </footer>
+</div>
+
+<script>
+// ============================================================
+// 全局状态
+// ============================================================
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+const tooltip = document.getElementById('tooltip');
+
+let state = {
+  maxN: 5000,
+  mode: 'K',           // 'K' or 'g'
+  colorScheme: 'mod6', // 'mod6', 'deviation', 'density'
+  pointSize: 2,
+  showGrid: true,
+  showAxis: true,
+  showSpiral: false,
+  rotation: 0,
+  rotating: false,
+  zoom: 1,
+  panX: 0,
+  panY: 0,
+};
+
+let data = null;  // {N, g, K, mod6, S}[]
+let stats = null;
+let hoveredIndex = -1;
+
+// ============================================================
+// 数学计算：筛法 + 哥德巴赫分拆数
+// ============================================================
+const C2 = 0.6601618158468695;
+
+function sievePrimes(limit) {
+  const isPrime = new Uint8Array(limit + 1);
+  isPrime.fill(1);
+  isPrime[0] = isPrime[1] = 0;
+  for (let i = 2; i * i <= limit; i++) {
+    if (isPrime[i]) {
+      for (let j = i * i; j <= limit; j += i) {
+        isPrime[j] = 0;
+      }
+    }
+  }
+  return isPrime;
+}
+
+function computeSingularSeries(N, isPrime) {
+  let n = N;
+  let result = C2;
+  let p = 3;
+  while (p * p <= n) {
+    if (n % p === 0) {
+      result *= (p - 1) / (p - 2);
+      while (n % p === 0) n = Math.floor(n / p);
+    }
+    p += 2;
+  }
+  if (n > 2) {
+    result *= (n - 1) / (n - 2);
+  }
+  return result;
+}
+
+function computeGoldbach(maxN, onProgress) {
+  return new Promise((resolve) => {
+    const isPrime = sievePrimes(maxN);
+    const results = [];
+    const chunkSize = 500;
+    
+    function computeChunk(startN) {
+      const endN = Math.min(startN + chunkSize, maxN);
+      
+      for (let N = startN; N <= endN; N += 2) {
+        let g = 0;
+        for (let p = 3; p <= N / 2; p += 2) {
+          if (isPrime[p] && isPrime[N - p]) {
+            g++;
+          }
+        }
+        const S = computeSingularSeries(N, isPrime);
+        const lnN = Math.log(N);
+        const K = (g * lnN * lnN) / (S * N);
+        const mod6 = N % 6;
+        
+        results.push({ N, g, K, mod6, S });
+      }
+      
+      if (endN < maxN) {
+        if (onProgress) onProgress(endN / maxN);
+        requestAnimationFrame(() => computeChunk(endN + 2));
+      } else {
+        if (onProgress) onProgress(1);
+        resolve({ results, isPrime });
+      }
+    }
+    
+    computeChunk(6);
+  });
+}
+
+function computeStats(results) {
+  const gValues = results.map(r => r.g);
+  const kValues = results.map(r => r.K);
+  
+  const gMin = Math.min(...gValues);
+  const gMax = Math.max(...gValues);
+  const kMin = Math.min(...kValues);
+  const kMax = Math.max(...kValues);
+  
+  const kMean = kValues.reduce((a, b) => a + b, 0) / kValues.length;
+  const kVariance = kValues.reduce((sum, v) => sum + (v - kMean) ** 2, 0) / kValues.length;
+  const kStd = Math.sqrt(kVariance);
+  
+  // 模 6 分组统计
+  const groups = { 0: [], 2: [], 4: [] };
+  for (const r of results) {
+    groups[r.mod6].push(r);
+  }
+  
+  const meanG0 = groups[0].reduce((s, r) => s + r.g, 0) / groups[0].length;
+  const meanG2 = groups[2].reduce((s, r) => s + r.g, 0) / groups[2].length;
+  const ratio = meanG0 / meanG2;
+  
+  return {
+    count: results.length,
+    gMin, gMax, kMin, kMax,
+    kMean, kStd,
+    ratio,
+  };
+}
+
+// ============================================================
+// 颜色
+// ============================================================
+function getColor(point, stats) {
+  if (state.colorScheme === 'mod6') {
+    if (point.mod6 === 0) return '#ffd700';
+    if (point.mod6 === 2) return '#00d4ff';
+    if (point.mod6 === 4) return '#ff6b9d';
+    return '#ffffff';
+  }
+  
+  if (state.colorScheme === 'deviation') {
+    const z = (point.K - stats.kMean) / stats.kStd;
+    if (z > 1.5) return '#ff4444';
+    if (z < -1.5) return '#4488ff';
+    if (z > 0.5) return '#ffaa00';
+    if (z < -0.5) return '#66aaff';
+    return '#ffd700';
+  }
+  
+  return '#ffd700';
+}
+
+// ============================================================
+// 渲染
+// ============================================================
+function resizeCanvas() {
+  const rect = canvas.parentElement.getBoundingClientRect();
+  const size = Math.min(rect.width, rect.height);
+  canvas.width = size * window.devicePixelRatio;
+  canvas.height = size * window.devicePixelRatio;
+  canvas.style.width = size + 'px';
+  canvas.style.height = size + 'px';
+  ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+}
+
+function getRadius(point) {
+  if (state.mode === 'K') {
+    return point.K;
+  } else {
+    return point.g;
+  }
+}
+
+function getMaxRadius() {
+  if (!data) return 100;
+  if (state.mode === 'K') {
+    return stats ? Math.max(stats.kMax, 2.5) : 2.5;
+  } else {
+    return stats ? stats.gMax : 100;
+  }
+}
+
+function polarToCart(r, theta, cx, cy, scale) {
+  const x = cx + r * scale * Math.cos(theta + state.rotation);
+  const y = cy - r * scale * Math.sin(theta + state.rotation);
+  return { x, y };
+}
+
+function draw() {
+  const w = canvas.width / window.devicePixelRatio;
+  const h = canvas.height / window.devicePixelRatio;
+  const cx = w / 2 + state.panX;
+  const cy = h / 2 + state.panY;
+  
+  ctx.clearRect(0, 0, w, h);
+  
+  // 背景渐变
+  const bgGrad = ctx.createRadialGradient(cx, cy, 0, cx, cy, w * 0.6);
+  bgGrad.addColorStop(0, 'rgba(20, 20, 40, 0.5)');
+  bgGrad.addColorStop(1, 'rgba(5, 5, 15, 0.9)');
+  ctx.fillStyle = bgGrad;
+  ctx.fillRect(0, 0, w, h);
+  
+  if (!data) return;
+  
+  const maxR = getMaxRadius();
+  const pixelRadius = Math.min(w, h) * 0.42 * state.zoom;
+  const scale = pixelRadius / maxR;
+  
+  // 参考圆
+  if (state.showGrid) {
+    drawGrid(cx, cy, maxR, scale);
+  }
+  
+  // 坐标轴
+  if (state.showAxis) {
+    drawAxis(cx, cy, pixelRadius);
+  }
+  
+  // 螺旋连线
+  if (state.showSpiral && data.length > 1) {
+    ctx.beginPath();
+    ctx.strokeStyle = 'rgba(255, 215, 0, 0.1)';
+    ctx.lineWidth = 0.5;
+    for (let i = 0; i < data.length; i++) {
+      const r = getRadius(data[i]);
+      const theta = data[i].N;
+      const pos = polarToCart(r, theta, cx, cy, scale);
+      if (i === 0) ctx.moveTo(pos.x, pos.y);
+      else ctx.lineTo(pos.x, pos.y);
+    }
+    ctx.stroke();
+  }
+  
+  // 数据点
+  for (let i = 0; i < data.length; i++) {
+    const r = getRadius(data[i]);
+    const theta = data[i].N;
+    const pos = polarToCart(r, theta, cx, cy, scale);
+    
+    const color = getColor(data[i], stats);
+    const size = state.pointSize * (i === hoveredIndex ? 3 : 1);
+    
+    // 光晕效果
+    if (i === hoveredIndex) {
+      ctx.beginPath();
+      ctx.arc(pos.x, pos.y, size * 3, 0, Math.PI * 2);
+      ctx.fillStyle = color + '40';
+      ctx.fill();
+    }
+    
+    ctx.beginPath();
+    ctx.arc(pos.x, pos.y, size, 0, Math.PI * 2);
+    ctx.fillStyle = color;
+    ctx.fill();
+  }
+  
+  // 高亮 hover 点
+  if (hoveredIndex >= 0) {
+    const point = data[hoveredIndex];
+    const r = getRadius(point);
+    const theta = point.N;
+    const pos = polarToCart(r, theta, cx, cy, scale);
+    
+    ctx.beginPath();
+    ctx.arc(pos.x, pos.y, state.pointSize * 2.5, 0, Math.PI * 2);
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+  }
+}
+
+function drawGrid(cx, cy, maxR, scale) {
+  const nCircles = 5;
+  for (let i = 1; i <= nCircles; i++) {
+    const frac = i / nCircles;
+    const r = maxR * frac * scale;
+    
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, 0, Math.PI * 2);
+    ctx.strokeStyle = `rgba(255, 215, 0, ${0.05 + 0.03 * (nCircles - i)})`;
+    ctx.lineWidth = 0.5;
+    ctx.stroke();
+    
+    // 标签
+    const val = state.mode === 'K' 
+      ? (maxR * frac).toFixed(2) 
+      : Math.round(maxR * frac);
+    ctx.fillStyle = 'rgba(255, 215, 0, 0.3)';
+    ctx.font = '10px monospace';
+    ctx.fillText(val, cx + r + 4, cy + 3);
+  }
+  
+  // 角度刻度（每 60°）
+  for (let deg = 0; deg < 360; deg += 30) {
+    const theta = (deg * Math.PI / 180) + state.rotation;
+    const rOuter = maxR * scale * 1.02;
+    const rInner = maxR * scale * 0.98;
+    
+    ctx.beginPath();
+    ctx.moveTo(cx + rInner * Math.cos(theta), cy - rInner * Math.sin(theta));
+    ctx.lineTo(cx + rOuter * Math.cos(theta), cy - rOuter * Math.sin(theta));
+    ctx.strokeStyle = 'rgba(255, 215, 0, 0.15)';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+    
+    // 每 90° 标数字
+    if (deg % 90 === 0) {
+      const rLabel = maxR * scale * 1.08;
+      const lx = cx + rLabel * Math.cos(theta);
+      const ly = cy - rLabel * Math.sin(theta);
+      ctx.fillStyle = 'rgba(255, 215, 0, 0.4)';
+      ctx.font = '10px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(deg + '°', lx, ly + 3);
+    }
+  }
+}
+
+function drawAxis(cx, cy, r) {
+  ctx.beginPath();
+  ctx.moveTo(cx - r * 1.05, cy);
+  ctx.lineTo(cx + r * 1.05, cy);
+  ctx.moveTo(cx, cy - r * 1.05);
+  ctx.lineTo(cx, cy + r * 1.05);
+  ctx.strokeStyle = 'rgba(255, 215, 0, 0.08)';
+  ctx.lineWidth = 1;
+  ctx.stroke();
+}
+
+// ============================================================
+// 交互
+// ============================================================
+function updateStatsUI() {
+  document.getElementById('statCount').textContent = stats.count;
+  document.getElementById('statGRange').textContent = `${stats.gMin} ~ ${stats.gMax}`;
+  document.getElementById('statKRange').textContent = `${stats.kMin.toFixed(3)} ~ ${stats.kMax.toFixed(3)}`;
+  document.getElementById('statKMean').textContent = stats.kMean.toFixed(4);
+  document.getElementById('statKStd').textContent = stats.kStd.toFixed(4);
+  document.getElementById('statRatio').textContent = stats.ratio.toFixed(3) + '  (理论: 2.0)';
+}
+
+function updateLegend() {
+  document.getElementById('legendMod6').style.display = 
+    state.colorScheme === 'mod6' ? 'block' : 'none';
+  document.getElementById('legendDeviation').style.display = 
+    state.colorScheme === 'deviation' ? 'block' : 'none';
+}
+
+function setMode(mode) {
+  state.mode = mode;
+  document.querySelectorAll('[data-mode]').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.mode === mode);
+  });
+  draw();
+}
+
+function updateColorScheme() {
+  state.colorScheme = document.getElementById('colorScheme').value;
+  updateLegend();
+  draw();
+}
+
+function updateMaxN(val) {
+  state.maxN = parseInt(val);
+  document.getElementById('maxNVal').textContent = val;
+  loadData();
+}
+
+function updatePointSize(val) {
+  state.pointSize = parseFloat(val);
+  document.getElementById('pointSizeVal').textContent = val;
+  draw();
+}
+
+function toggleGrid() {
+  state.showGrid = document.getElementById('showGrid').checked;
+  draw();
+}
+
+function toggleAxis() {
+  state.showAxis = document.getElementById('showAxis').checked;
+  draw();
+}
+
+function toggleSpiral() {
+  state.showSpiral = document.getElementById('showSpiral').checked;
+  draw();
+}
+
+function resetView() {
+  state.rotation = 0;
+  state.zoom = 1;
+  state.panX = 0;
+  state.panY = 0;
+  state.rotating = false;
+  draw();
+}
+
+function toggleRotation() {
+  state.rotating = !state.rotating;
+  if (state.rotating) {
+    animateRotation();
+  }
+}
+
+function animateRotation() {
+  if (!state.rotating) return;
+  state.rotation += 0.003;
+  draw();
+  requestAnimationFrame(animateRotation);
+}
+
+// 鼠标悬停检测
+function handleMouseMove(e) {
+  if (!data) return;
+  
+  const rect = canvas.getBoundingClientRect();
+  const mx = e.clientX - rect.left;
+  const my = e.clientY - rect.top;
+  
+  const w = canvas.width / window.devicePixelRatio;
+  const h = canvas.height / window.devicePixelRatio;
+  const cx = w / 2 + state.panX;
+  const cy = h / 2 + state.panY;
+  const maxR = getMaxRadius();
+  const pixelRadius = Math.min(w, h) * 0.42 * state.zoom;
+  const scale = pixelRadius / maxR;
+  
+  // 找最近的点
+  let minDist = Infinity;
+  let nearestIdx = -1;
+  
+  // 只查附近的点（优化：用角度范围）
+  const dx = mx - cx;
+  const dy = cy - my;
+  const mouseR = Math.sqrt(dx * dx + dy * dy) / scale;
+  const mouseTheta = Math.atan2(dy, dx) - state.rotation;
+  
+  // 简单线性搜索（数据量不大的话没问题）
+  for (let i = 0; i < data.length; i++) {
+    const r = getRadius(data[i]);
+    const theta = data[i].N;
+    const pos = polarToCart(r, theta, cx, cy, scale);
+    
+    const dist = Math.sqrt((pos.x - mx) ** 2 + (pos.y - my) ** 2);
+    if (dist < minDist && dist < 15) {
+      minDist = dist;
+      nearestIdx = i;
+    }
+  }
+  
+  if (nearestIdx !== hoveredIndex) {
+    hoveredIndex = nearestIdx;
+    draw();
+    
+    if (nearestIdx >= 0) {
+      const point = data[nearestIdx];
+      document.getElementById('tipTitle').textContent = `N = ${point.N}`;
+      document.getElementById('tipG').textContent = point.g;
+      document.getElementById('tipK').textContent = point.K.toFixed(4);
+      document.getElementById('tipMod6').textContent = point.mod6;
+      document.getElementById('tipS').textContent = point.S.toFixed(4);
+      
+      tooltip.style.display = 'block';
+      
+      // 定位 tooltip，避免超出画布
+      const tipW = tooltip.offsetWidth;
+      const tipH = tooltip.offsetHeight;
+      let tx = mx + 15;
+      let ty = my + 15;
+      if (tx + tipW > rect.width) tx = mx - tipW - 15;
+      if (ty + tipH > rect.height) ty = my - tipH - 15;
+      tooltip.style.left = tx + 'px';
+      tooltip.style.top = ty + 'px';
+    } else {
+      tooltip.style.display = 'none';
+    }
+  }
+}
+
+function handleMouseLeave() {
+  hoveredIndex = -1;
+  tooltip.style.display = 'none';
+  draw();
+}
+
+// 缩放
+let isDragging = false;
+let dragStartX, dragStartY;
+
+function handleWheel(e) {
+  e.preventDefault();
+  const factor = e.deltaY > 0 ? 0.9 : 1.1;
+  state.zoom = Math.max(0.3, Math.min(10, state.zoom * factor));
+  draw();
+}
+
+function handleMouseDown(e) {
+  isDragging = true;
+  dragStartX = e.clientX - state.panX;
+  dragStartY = e.clientY - state.panY;
+  canvas.style.cursor = 'grabbing';
+}
+
+function handleMouseUp() {
+  isDragging = false;
+  canvas.style.cursor = 'crosshair';
+}
+
+function handleDrag(e) {
+  if (!isDragging) return;
+  state.panX = e.clientX - dragStartX;
+  state.panY = e.clientY - dragStartY;
+  draw();
+}
+
+// ============================================================
+// 数据加载
+// ============================================================
+async function loadData() {
+  const progressBar = document.getElementById('progressBar');
+  const progressFill = document.getElementById('progressFill');
+  const loadingText = document.getElementById('loadingText');
+  
+  progressBar.style.display = 'block';
+  loadingText.style.display = 'block';
+  progressFill.style.width = '0%';
+  
+  const { results } = await computeGoldbach(state.maxN, (progress) => {
+    progressFill.style.width = (progress * 100) + '%';
+  });
+  
+  data = results;
+  stats = computeStats(results);
+  updateStatsUI();
+  
+  progressBar.style.display = 'none';
+  loadingText.style.display = 'none';
+  
+  draw();
+}
+
+// ============================================================
+// 初始化
+// ============================================================
+function init() {
+  resizeCanvas();
+  window.addEventListener('resize', () => {
+    resizeCanvas();
+    draw();
+  });
+  
+  canvas.addEventListener('mousemove', handleMouseMove);
+  canvas.addEventListener('mouseleave', handleMouseLeave);
+  canvas.addEventListener('wheel', handleWheel, { passive: false });
+  canvas.addEventListener('mousedown', handleMouseDown);
+  window.addEventListener('mouseup', handleMouseUp);
+  window.addEventListener('mousemove', handleDrag);
+  
+  loadData();
+}
+
+init();
+</script>
+</body>
+</html>
